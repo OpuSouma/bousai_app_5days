@@ -1,20 +1,86 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>検索結果</h2>
-
-{% if results %}
-  <ul>
-    {% for shelter in results %}
-    <li>{{ shelter.name }}</li>
-    {% endfor %}
-  </ul>
+{% if full_list %}
+  <h2>全施設一覧</h2>
+  <p>平常時の確認などにご利用ください。災害種別や設備情報が未登録の施設も含め、登録されている避難所をすべて表示しています。</p>
 {% else %}
-  <p>該当する避難所が見つかりませんでした</p>
+  <h2>避難所検索結果</h2>
+  <section class="applied-conditions" aria-label="適用した検索条件">
+    <h3>検索条件</h3>
+    {% if condition_labels %}
+      <ul>
+        {% for label in condition_labels %}
+          <li>{{ label }}</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>条件指定なし（全施設）</p>
+    {% endif %}
+  </section>
 {% endif %}
 
-<p>
-  <a href="/shelter_search">検索画面に戻る</a> |
-  <a href="/">トップページへ戻る</a>
+{% if results %}
+  <ul class="shelter-results">
+    {% for shelter in results %}
+      {% set details = shelter._result_details %}
+      <li class="shelter-result-card">
+        <h3>{{ shelter.get('name') or '名称未登録' }}</h3>
+        <dl class="shelter-result-details">
+          <dt>住所</dt>
+          <dd>{{ shelter.get('address') or '未登録' }}</dd>
+
+          <dt>開設状況</dt>
+          <dd>{{ shelter.get('status') or '未登録' }}</dd>
+
+          <dt>収容人数</dt>
+          <dd>{% if details.capacity is not none %}{{ details.capacity }}人{% else %}未登録{% endif %}</dd>
+
+          <dt>現在の避難者数</dt>
+          <dd>{% if details.evacuees is not none %}{{ details.evacuees }}人{% else %}未登録{% endif %}</dd>
+
+          <dt>混雑状況</dt>
+          <dd><span class="shelter-status shelter-status--{{ details.crowding.color }}">{{ details.crowding.label }}</span></dd>
+
+          <dt>空き状況</dt>
+          <dd><span class="shelter-status shelter-status--{{ details.vacancy.color }}">{{ details.vacancy.label }}</span></dd>
+
+          <dt>設備情報</dt>
+          <dd>
+            {% if details.amenities %}
+              <ul class="shelter-amenities">
+                {% for amenity in details.amenities %}
+                  <li aria-label="{{ amenity.aria_label }}">
+                    {% if amenity.icon %}<span aria-hidden="true">{{ amenity.icon }}</span>{% endif %}
+                    {{ amenity.label }}
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              未登録
+            {% endif %}
+          </dd>
+        </dl>
+        {% if session.logged_in and shelter.get('id') is not none %}
+          <p><a href="{{ url_for('edit_shelter', shelter_id=shelter.id) }}">避難所情報を編集</a></p>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+{% elif full_list %}
+  <p class="empty-state">登録されている避難所はありません。</p>
+{% else %}
+  <div class="empty-state" role="status">
+    <p>条件に合う避難所がありません</p>
+    {% if missing_info_filter %}
+      <p>条件に必要な災害対応情報または設備情報が未登録の避難所は、検索結果から除外されています。条件を見直すか、全施設一覧をご確認ください。</p>
+    {% endif %}
+    <a class="results-button results-button--secondary" href="{{ search_url }}">条件を変えて再検索する</a>
+  </div>
+{% endif %}
+
+<p class="results-navigation">
+  <a class="results-button results-button--primary" href="{{ search_url }}">検索画面に戻る</a>
+  <a class="results-button results-button--secondary" href="{{ url_for('index') }}">トップページへ戻る</a>
 </p>
 {% endblock %}

@@ -2,7 +2,79 @@
 
 {% block content %}
 <h2>避難所検索</h2>
-<p>登録されている避難所を確認できます。</p>
+<p>地区や避難所名、災害の種類、設備条件から避難所を検索できます。</p>
+<p>地区が分からない場合は、避難所名の一部だけでも検索できます。地区が未登録の避難所もあります。</p>
 
-<p><a href="/all_shelters">全施設一覧</a></p>
+{% if errors %}
+  <div class="form-errors" role="alert">
+    <p>検索条件を確認してください。</p>
+    <ul>
+      {% for error in errors %}
+        <li>{{ error }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+
+<form class="shelter-search-form" method="get" action="{{ url_for('search_results') }}">
+  <p>
+    <label for="district">地区</label>
+    <select id="district" name="district">
+      <option value="">すべての地区</option>
+      {% for district in districts %}
+        <option value="{{ district }}" {% if conditions.district == district %}selected{% endif %}>{{ district }}</option>
+      {% endfor %}
+    </select>
+    {% if not districts %}
+      <small>地区はまだ登録されていません。避難所名の一部から検索できます。</small>
+    {% else %}
+      <small>地区が分からない場合は「すべての地区」のまま検索できます。</small>
+    {% endif %}
+  </p>
+
+  <p>
+    <label for="keyword">避難所名キーワード</label>
+    <input type="search" id="keyword" name="keyword" value="{{ conditions.keyword }}" placeholder="例：〇〇小学校、名前の一部">
+    <small>避難所名の一部を入力してください。地区が分からなくても検索できます。</small>
+  </p>
+
+  <p>
+    <label for="disaster_type">災害種別</label>
+    <select id="disaster_type" name="disaster_type">
+      <option value="">指定しない</option>
+      {% for disaster_type in disaster_types %}
+        <option value="{{ disaster_type }}" {% if disaster_type in conditions.disaster_types %}selected{% endif %}>{{ disaster_type }}</option>
+      {% endfor %}
+    </select>
+    <small>例：洪水。未登録の災害対応情報は検索結果に含めません。</small>
+  </p>
+
+  <fieldset>
+    <legend>設備条件（複数選択可）</legend>
+    <label class="search-checkbox">
+      <input type="checkbox" name="pets_allowed" value="on" {% if conditions.pets_allowed %}checked{% endif %}>
+      ペット可
+    </label>
+    <label class="search-checkbox">
+      <input type="checkbox" name="barrier_free" value="on" {% if conditions.barrier_free %}checked{% endif %}>
+      バリアフリー
+    </label>
+    <small>設備情報が未登録の避難所は、該当条件の検索結果に含めません。</small>
+  </fieldset>
+
+  <button class="shelter-search-button" type="submit">避難所を検索</button>
+  <button class="shelter-clear-button" type="button" id="clear-search-conditions">条件をクリア</button>
+</form>
+
+<section class="all-shelters-link">
+  <h3>登録済み施設を確認</h3>
+  <p>条件を選ばず、登録されている避難所をまとめて確認できます。</p>
+  <a class="all-shelters-button" href="{{ url_for('all_shelters') }}">全施設一覧</a>
+</section>
+
+<script>
+  document.getElementById('clear-search-conditions').addEventListener('click', function () {
+    window.location.assign('{{ url_for("shelter_search") }}');
+  });
+</script>
 {% endblock %}

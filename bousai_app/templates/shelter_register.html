@@ -5,7 +5,7 @@
 <p>新しい避難所情報を登録します。</p>
 
 {% if success %}
-  <p>{{ message }}</p>
+  <div class="success-toast" role="status" aria-live="polite">{{ message }}</div>
 {% endif %}
 
 {% if errors %}
@@ -20,15 +20,16 @@
 {% set selected_disaster_types = form_data.disaster_types or [] %}
 
 {% if show_confirm %}
-  <form method="POST">
+  <form method="POST" class="shelter-register-form">
     <input type="hidden" name="name" value="{{ form_data.name }}">
     <input type="hidden" name="address" value="{{ form_data.address }}">
     <input type="hidden" name="capacity" value="{{ form_data.capacity }}">
+    <input type="hidden" name="district" value="{{ form_data.district }}">
     {% for disaster_type in selected_disaster_types %}
       <input type="hidden" name="disaster_types" value="{{ disaster_type }}">
     {% endfor %}
-    {% if form_data.pet_allowed %}
-      <input type="hidden" name="pet_allowed" value="on">
+    {% if form_data.pets_allowed %}
+      <input type="hidden" name="pets_allowed" value="on">
     {% endif %}
     {% if form_data.barrier_free %}
       <input type="hidden" name="barrier_free" value="on">
@@ -43,6 +44,9 @@
       <dt>住所</dt>
       <dd>{{ form_data.address }}</dd>
 
+      <dt>地区</dt>
+      <dd>{{ form_data.district or '未登録' }}</dd>
+
       <dt>収容人数</dt>
       <dd>{{ form_data.capacity }}人</dd>
 
@@ -50,7 +54,7 @@
       <dd>{% if selected_disaster_types %}{{ selected_disaster_types|join(', ') }}{% else %}未選択{% endif %}</dd>
 
       <dt>ペットの可否</dt>
-      <dd>{% if form_data.pet_allowed %}可{% else %}不可{% endif %}</dd>
+      <dd>{% if form_data.pets_allowed %}可{% else %}不可{% endif %}</dd>
 
       <dt>バリアフリー対応</dt>
       <dd>{% if form_data.barrier_free %}対応{% else %}非対応{% endif %}</dd>
@@ -65,7 +69,7 @@
     </p>
   </form>
 {% else %}
-  <form method="POST">
+  <form method="POST" class="shelter-register-form">
     <p>
       <label for="name">避難所名（必須）</label><br>
       <input type="text" id="name" name="name" value="{{ form_data.name }}">
@@ -82,13 +86,27 @@
     </p>
 
     <p>
-      <label>災害の種類</label><br>
-      <label><input type="checkbox" name="disaster_types" value="津波" {% if '津波' in selected_disaster_types %}checked{% endif %}> 津波</label>
-      <label><input type="checkbox" name="disaster_types" value="土砂崩れ" {% if '土砂崩れ' in selected_disaster_types %}checked{% endif %}> 土砂崩れ</label>
+      <label for="district">地区（任意）</label><br>
+      <select id="district" name="district">
+        <option value="">選択してください</option>
+        {% for district in district_options %}
+          <option value="{{ district }}" {% if form_data.district == district %}selected{% endif %}>{{ district }}</option>
+        {% endfor %}
+      </select>
     </p>
 
     <p>
-      <label><input type="checkbox" name="pet_allowed" {% if form_data.pet_allowed %}checked{% endif %}> ペット可</label>
+      <span>対応する災害の種類（複数選択可）</span><br>
+      <label><input type="checkbox" name="disaster_types" value="地震" {% if '地震' in selected_disaster_types %}checked{% endif %}> 地震</label>
+      <label><input type="checkbox" name="disaster_types" value="津波" {% if '津波' in selected_disaster_types %}checked{% endif %}> 津波</label>
+      <label><input type="checkbox" name="disaster_types" value="洪水" {% if '洪水' in selected_disaster_types %}checked{% endif %}> 洪水</label>
+      <label><input type="checkbox" name="disaster_types" value="土砂災害" {% if '土砂災害' in selected_disaster_types %}checked{% endif %}> 土砂災害</label>
+      <label><input type="checkbox" name="disaster_types" value="高潮" {% if '高潮' in selected_disaster_types %}checked{% endif %}> 高潮</label>
+      <label><input type="checkbox" name="disaster_types" value="大規模な火事" {% if '大規模な火事' in selected_disaster_types %}checked{% endif %}> 大規模な火事</label>
+    </p>
+
+    <p>
+      <label><input type="checkbox" name="pets_allowed" {% if form_data.pets_allowed %}checked{% endif %}> ペット可</label>
     </p>
 
     <p>
@@ -104,7 +122,7 @@
     </p>
 
     <p>
-      <button type="submit" name="action" value="confirm">確認</button>
+      <button class="register-confirm-button" type="submit" name="action" value="confirm">確認</button>
     </p>
   </form>
 {% endif %}

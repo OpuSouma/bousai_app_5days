@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>避難所情報の編集</h2>
+<p>{{ shelter.get('name') or '名称未登録' }}の情報を更新します。</p>
+
+{% if errors %}
+  <div class="form-errors" role="alert">
+    <ul>
+      {% for error in errors %}
+        <li>{{ error }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+
+{% set selected_disaster_types = form_data.disaster_types or [] %}
+<form method="post" class="shelter-register-form">
+  <p>
+    <label for="name">避難所名（必須）</label><br>
+    <input type="text" id="name" name="name" value="{{ form_data.name }}" required>
+  </p>
+  <p>
+    <label for="address">住所（必須）</label><br>
+    <input type="text" id="address" name="address" value="{{ form_data.address }}" required>
+  </p>
+  <p>
+    <label for="capacity">収容人数（必須）</label><br>
+    <input type="text" id="capacity" name="capacity" value="{{ form_data.capacity }}" inputmode="numeric" pattern="[0-9]*" required>
+  </p>
+  <p>
+    <label for="district">地区（任意）</label><br>
+    <select id="district" name="district">
+      <option value="">選択してください</option>
+      {% for district in district_options %}
+        <option value="{{ district }}" {% if form_data.district == district %}selected{% endif %}>{{ district }}</option>
+      {% endfor %}
+    </select>
+  </p>
+  <fieldset>
+    <legend>対応する災害の種類（複数選択可）</legend>
+    {% for disaster_type in disaster_types %}
+      <label class="search-checkbox">
+        <input type="checkbox" name="disaster_types" value="{{ disaster_type }}" {% if disaster_type in selected_disaster_types %}checked{% endif %}>
+        {{ disaster_type }}
+      </label>
+    {% endfor %}
+  </fieldset>
+  <p>
+    <label for="status">開設状況</label><br>
+    <select id="status" name="status">
+      <option value="開設中" {% if form_data.status == '開設中' %}selected{% endif %}>開設中</option>
+      <option value="閉鎖中" {% if form_data.status == '閉鎖中' %}selected{% endif %}>閉鎖中</option>
+    </select>
+  </p>
+  <p>
+    <button class="shelter-search-button" type="submit">変更を保存</button>
+    <a href="{{ url_for('all_shelters') }}">全施設一覧へ戻る</a>
+  </p>
+</form>
+{% endblock %}

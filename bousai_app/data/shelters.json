@@ -14,5 +14,68 @@
   {
     "id": 6,
     "name": "あ"
+  },
+  {
+    "id": 7,
+    "name": "テストデータ",
+    "address": "あ",
+    "capacity": 200,
+    "disaster_types": [
+      "津波"
+    ],
+    "pet_allowed": false,
+    "barrier_free": true,
+    "status": "開設中"
+  },
+  {
+    "id": 8,
+    "name": "テストデータ2",
+    "address": "aa",
+    "capacity": 2222,
+    "disaster_types": [
+      "土砂崩れ"
+    ],
+    "pet_allowed": true,
+    "barrier_free": false,
+    "status": "閉鎖中"
+  },
+  {
+    "id": 9,
+    "name": "テストデータ2",
+    "address": "aa",
+    "capacity": 2222,
+    "disaster_types": [
+      "土砂崩れ"
+    ],
+    "pet_allowed": true,
+    "barrier_free": false,
+    "status": "閉鎖中"
+  },
+  {
+    "id": 10,
+    "name": "テストデータ３",
+    "address": "こんにちは",
+    "capacity": 2,
+    "disaster_types": [
+      "津波",
+      "土砂崩れ"
+    ],
+    "pet_allowed": true,
+    "barrier_free": false,
+    "status": "開設中"
+  },
+  {
+    "id": 11,
+    "name": "テストデータ４",
+    "address": "あああ",
+    "capacity": 2,
+    "district": "北地区",
+    "disaster_types": [
+      "地震",
+      "土砂災害"
+    ],
+    "pets_allowed": true,
+    "barrier_free": false,
+    "status": "開設中"
   }
 ]
