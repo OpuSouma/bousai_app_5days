@@ -4,31 +4,341 @@
   <meta charset="utf-8">
   <title>{% block title %}防災アプリ{% endblock %}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --header-blue: #1a6cca;
+      --header-blue-dark: #1a6cca;
+      --text-blue: #0b5ea8;
+      --soft-bg: #edf0f2;
+      --panel-bg: #f3f5f6;
+      --panel-border: #dfe4e6;
+      --muted-text: #6f7a82;
+      --text-main: #1f2f3d;
+      --success: #2ca56a;
+      --shadow: 0 4px 14px rgba(18, 48, 74, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--soft-bg);
+      color: var(--text-main);
+      font-family: "Segoe UI", "Yu Gothic UI", "Hiragino Sans", sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 9999;
+      width: 100%;
+      height: 68px;
+      background: linear-gradient(180deg, var(--header-blue) 0%, var(--header-blue-dark) 100%);
+      box-shadow: 0 2px 8px rgba(11, 35, 62, 0.15);
+    }
+
+    .site-header-inner {
+      max-width: 1200px;
+      height: 100%;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .site-title {
+      margin: 0;
+      font-size: clamp(1.8rem, 2vw, 2.3rem);
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.02em;
+    }
+
+    .hamburger-wrap {
+      position: relative;
+    }
+
+    .menu-toggle {
+      width: 48px;
+      height: 48px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .menu-toggle:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .menu-toggle-line {
+      position: relative;
+      display: block;
+      width: 24px;
+      height: 3px;
+      border-radius: 2px;
+      background: #fff;
+    }
+
+    .menu-toggle-line::before,
+    .menu-toggle-line::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      width: 24px;
+      height: 3px;
+      border-radius: 2px;
+      background: #fff;
+    }
+
+    .menu-toggle-line::before { top: -8px; }
+    .menu-toggle-line::after { top: 8px; }
+
+    .header-menu {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      display: none;
+      flex-direction: column;
+      min-width: 220px;
+      padding: 10px 0;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.98);
+      box-shadow: 0 10px 25px rgba(12, 25, 40, 0.18);
+      border: 1px solid rgba(16, 62, 108, 0.1);
+    }
+
+    .header-menu.open {
+      display: flex;
+    }
+
+    .header-menu a {
+      padding: 12px 18px;
+      text-decoration: none;
+      color: var(--text-main);
+      font-size: 1.02rem;
+      font-weight: 600;
+      border-bottom: 1px solid #edf0f2;
+    }
+
+    .header-menu a:last-child {
+      border-bottom: none;
+    }
+
+    .header-menu a:hover {
+      background: #f4f7fb;
+    }
+
+    main {
+      width: 100%;
+      padding: 28px 16px 40px;
+    }
+
+    .page-shell {
+      max-width: 820px;
+      margin: 0 auto;
+    }
+
+    .section-box {
+      background: transparent;
+      border-radius: 18px;
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 12px;
+      font-size: clamp(1.1rem, 1.5vw, 1.8rem);
+      font-weight: 700;
+      color: var(--text-blue);
+    }
+
+    .pin-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      color: var(--text-blue);
+      font-size: 1.4rem;
+      line-height: 1;
+    }
+
+    .map-card {
+      width: 100%;
+      max-width: 820px;
+      margin: 0 auto;
+      background: #eef3f5;
+      border-radius: 16px;
+      border: 1px solid var(--panel-border);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    #shelterMap {
+      width: 100%;
+      height: 380px;
+      background: #dfeef7;
+    }
+
+    .weather-panel {
+      width: 100%;
+      max-width: 820px;
+      margin: 28px auto 0;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 18px 22px;
+    }
+
+    .weather-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #dde2e6;
+      margin-bottom: 14px;
+    }
+
+    .weather-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: clamp(1.1rem, 1.6vw, 1.7rem);
+      font-weight: 700;
+      color: var(--text-blue);
+    }
+
+    .weather-refresh {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.95rem;
+      color: var(--success);
+      font-weight: 600;
+      background: transparent;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+    }
+
+    .weather-body {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      color: var(--text-main);
+      font-size: 1rem;
+    }
+
+    .weather-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 28px;
+      color: var(--text-main);
+      font-size: 1rem;
+    }
+
+    .weather-row .bullet {
+      width: 10px;
+      height: 10px;
+      display: inline-block;
+      border-radius: 50%;
+      background: var(--success);
+      flex-shrink: 0;
+    }
+
+    .weather-row strong {
+      color: var(--text-main);
+    }
+
+    .weather-row .subtle {
+      color: var(--muted-text);
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 640px) {
+      .site-header {
+        height: 60px;
+      }
+
+      .site-title {
+        font-size: 1.7rem;
+      }
+
+      .weather-panel {
+        padding: 16px 16px 18px;
+      }
+
+      #shelterMap {
+        height: 300px;
+      }
+    }
+  </style>
 </head>
 <body>
-  <!-- ヘッダー -->
-  <h1>防災アプリ</h1>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <h1 class="site-title">防災アプリ</h1>
 
-  <!-- ナビゲーション -->
-  <nav>
-    <a href="/">ホーム</a> |
-    <a href="/shelter_search">避難所検索</a> |
-    <a href="/shelter_register">避難所登録</a> |
-    <a href="/board">指示・発信ボード</a>
-    ｜
-    {% if session.logged_in %}
-      ログイン中{% if session.username %}（{{ session.username }}）{% endif %}
-      <a href="/logout">ログアウト</a>
-    {% else %}
-      未ログイン
-      <a href="/login">ログイン</a>
-    {% endif %}
-  </nav>
-  <hr>
+      <div class="hamburger-wrap">
+        <button class="menu-toggle" type="button" aria-label="メニューを開く" aria-expanded="false">
+          <span class="menu-toggle-line"></span>
+        </button>
+
+        <nav class="header-menu" aria-label="メインメニュー">
+          <a href="/">ホーム</a>
+          <a href="/shelter_search">避難所検索</a>
+          <a href="/shelter_register">避難所登録</a>
+          <a href="/board">指示・発信ボード</a>
+          {% if session.logged_in %}
+            <a href="/logout">ログアウト</a>
+          {% else %}
+            <a href="/login">ログイン</a>
+          {% endif %}
+        </nav>
+      </div>
+    </div>
+  </header>
 
   <main>
-    <!-- ここに子テンプレートの content が入る -->
-    {% block content %}{% endblock %}
+    <div class="page-shell">
+      {% block content %}{% endblock %}
+    </div>
   </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const toggle = document.querySelector('.menu-toggle');
+      const menu = document.querySelector('.header-menu');
+      if (!toggle || !menu) return;
+
+      toggle.addEventListener('click', function () {
+        const isOpen = menu.classList.toggle('open');
+        toggle.setAttribute('aria-expanded', String(isOpen));
+      });
+
+      document.addEventListener('click', function (event) {
+        if (!menu.contains(event.target) && !toggle.contains(event.target)) {
+          menu.classList.remove('open');
+          toggle.setAttribute('aria-expanded', 'false');
+        }
+      });
+    });
+  </script>
 </body>
 </html>
