@@ -4,20 +4,108 @@
 <h2>避難所登録</h2>
 <p>新しい避難所情報を登録します。</p>
 
-<!-- 成功・エラーメッセージ表示 -->
 {% if success %}
   <p>{{ message }}</p>
 {% endif %}
 
-{% if error %}
-  <p>{{ message }}</p>
+{% if errors %}
+  <ul>
+    {% for error in errors %}
+      <li>{{ error }}</li>
+    {% endfor %}
+  </ul>
 {% endif %}
 
-<form method="POST">
-  <p>
-    <label for="name">避難所名（必須）</label><br>
-    <input type="text" id="name" name="name">
-  </p>
-  <p><button type="submit">登録</button></p>
-</form>
+{% set form_data = form_data or {} %}
+{% set selected_disaster_types = form_data.disaster_types or [] %}
+
+{% if show_confirm %}
+  <form method="POST">
+    <input type="hidden" name="name" value="{{ form_data.name }}">
+    <input type="hidden" name="address" value="{{ form_data.address }}">
+    <input type="hidden" name="capacity" value="{{ form_data.capacity }}">
+    {% for disaster_type in selected_disaster_types %}
+      <input type="hidden" name="disaster_types" value="{{ disaster_type }}">
+    {% endfor %}
+    {% if form_data.pet_allowed %}
+      <input type="hidden" name="pet_allowed" value="on">
+    {% endif %}
+    {% if form_data.barrier_free %}
+      <input type="hidden" name="barrier_free" value="on">
+    {% endif %}
+    <input type="hidden" name="status" value="{{ form_data.status }}">
+
+    <p>以下の内容で登録します。</p>
+    <dl>
+      <dt>避難所名</dt>
+      <dd>{{ form_data.name }}</dd>
+
+      <dt>住所</dt>
+      <dd>{{ form_data.address }}</dd>
+
+      <dt>収容人数</dt>
+      <dd>{{ form_data.capacity }}人</dd>
+
+      <dt>災害の種類</dt>
+      <dd>{% if selected_disaster_types %}{{ selected_disaster_types|join(', ') }}{% else %}未選択{% endif %}</dd>
+
+      <dt>ペットの可否</dt>
+      <dd>{% if form_data.pet_allowed %}可{% else %}不可{% endif %}</dd>
+
+      <dt>バリアフリー対応</dt>
+      <dd>{% if form_data.barrier_free %}対応{% else %}非対応{% endif %}</dd>
+
+      <dt>開設状況</dt>
+      <dd>{{ form_data.status }}</dd>
+    </dl>
+
+    <p>
+      <button type="submit" name="action" value="submit">登録</button>
+      <button type="submit" name="action" value="back">戻る</button>
+    </p>
+  </form>
+{% else %}
+  <form method="POST">
+    <p>
+      <label for="name">避難所名（必須）</label><br>
+      <input type="text" id="name" name="name" value="{{ form_data.name }}">
+    </p>
+
+    <p>
+      <label for="address">住所（必須）</label><br>
+      <input type="text" id="address" name="address" value="{{ form_data.address }}">
+    </p>
+
+    <p>
+      <label for="capacity">収容人数（必須）</label><br>
+      <input type="text" id="capacity" name="capacity" value="{{ form_data.capacity }}" inputmode="numeric" pattern="[0-9]*" placeholder="例: 200">
+    </p>
+
+    <p>
+      <label>災害の種類</label><br>
+      <label><input type="checkbox" name="disaster_types" value="津波" {% if '津波' in selected_disaster_types %}checked{% endif %}> 津波</label>
+      <label><input type="checkbox" name="disaster_types" value="土砂崩れ" {% if '土砂崩れ' in selected_disaster_types %}checked{% endif %}> 土砂崩れ</label>
+    </p>
+
+    <p>
+      <label><input type="checkbox" name="pet_allowed" {% if form_data.pet_allowed %}checked{% endif %}> ペット可</label>
+    </p>
+
+    <p>
+      <label><input type="checkbox" name="barrier_free" {% if form_data.barrier_free %}checked{% endif %}> バリアフリー対応</label>
+    </p>
+
+    <p>
+      <label for="status">開設状況</label><br>
+      <select id="status" name="status">
+        <option value="開設中" {% if form_data.status == '開設中' %}selected{% endif %}>開設中</option>
+        <option value="閉鎖中" {% if form_data.status == '閉鎖中' %}selected{% endif %}>閉鎖中</option>
+      </select>
+    </p>
+
+    <p>
+      <button type="submit" name="action" value="confirm">確認</button>
+    </p>
+  </form>
+{% endif %}
 {% endblock %}

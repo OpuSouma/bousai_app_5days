@@ -3,6 +3,7 @@ from urllib.parse import urlparse, urljoin
 from functools import wraps
 import json
 import os
+import re
 import urllib.request
 from datetime import datetime, timedelta, timezone
 
@@ -289,27 +290,86 @@ def logout():
 @app.route('/shelter_register', methods=['GET', 'POST'])
 @login_required
 def shelter_register():
-    if request.method == 'POST':
-        shelter_name = request.form.get('name', '').strip()
+    default_form = {
+        'name': '',
+        'address': '',
+        'capacity': '',
+        'disaster_types': [],
+        'pet_allowed': False,
+        'barrier_free': False,
+        'status': '開設中'
+    }
 
-        if not shelter_name:
+    if request.method == 'POST':
+        form_data = {
+            'name': request.form.get('name', '').strip(),
+            'address': request.form.get('address', '').strip(),
+            'capacity': request.form.get('capacity', '').strip(),
+            'disaster_types': request.form.getlist('disaster_types'),
+            'pet_allowed': request.form.get('pet_allowed') is not None,
+            'barrier_free': request.form.get('barrier_free') is not None,
+            'status': request.form.get('status', '開設中')
+        }
+
+        action = request.form.get('action', 'confirm')
+
+        if action == 'back':
+            return render_template('shelter_register.html', form_data=form_data, show_confirm=False)
+
+        errors = []
+
+        if not form_data['name']:
+            errors.append('避難所名を入力してください。')
+        if not form_data['address']:
+            errors.append('住所を入力してください。')
+        if not re.fullmatch(r'\d+', form_data['capacity']):
+            errors.append('収容人数は半角数字で入力してください。')
+
+        if action == 'submit':
+            if errors:
+                return render_template(
+                    'shelter_register.html',
+                    form_data=form_data,
+                    show_confirm=False,
+                    errors=errors
+                )
+
+            new_id = max((s.get('id', 0) for s in shelters), default=0) + 1
+            new_shelter = {
+                'id': new_id,
+                'name': form_data['name'],
+                'address': form_data['address'],
+                'capacity': int(form_data['capacity']),
+                'disaster_types': form_data['disaster_types'],
+                'pet_allowed': form_data['pet_allowed'],
+                'barrier_free': form_data['barrier_free'],
+                'status': form_data['status']
+            }
+            shelters.append(new_shelter)
+            save_shelters()
+
             return render_template(
                 'shelter_register.html',
-                error=True,
-                message='避難所名を入力してください。'
+                form_data=default_form,
+                success=True,
+                message=f'{new_shelter["name"]} を登録しました。'
             )
 
-        new_id = max((s.get('id', 0) for s in shelters), default=0) + 1
-        shelters.append({'id': new_id, 'name': shelter_name})
-        save_shelters()
+        if errors:
+            return render_template(
+                'shelter_register.html',
+                form_data=form_data,
+                show_confirm=False,
+                errors=errors
+            )
 
         return render_template(
             'shelter_register.html',
-            success=True,
-            message=f'{shelter_name} を登録しました。'
+            form_data=form_data,
+            show_confirm=True
         )
 
-    return render_template('shelter_register.html')
+    return render_template('shelter_register.html', form_data=default_form)
 
 # 避難所検索ページ
 @app.route('/shelter_search')
